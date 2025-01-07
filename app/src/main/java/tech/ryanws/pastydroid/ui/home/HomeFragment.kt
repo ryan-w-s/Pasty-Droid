@@ -17,6 +17,8 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private lateinit var pasteAdapter: PasteAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -28,10 +30,17 @@ class HomeFragment : Fragment() {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val textView: TextView = binding.textHome
-        homeViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+        pasteAdapter = PasteAdapter()
+        binding.recyclerPastes.adapter = pasteAdapter
+
+        pasteAdapter.onLoadMore = {
+            homeViewModel.loadPastes()
         }
+
+        homeViewModel.pastes.observe(viewLifecycleOwner) { pastes ->
+            pasteAdapter.updatePastes(pastes)
+        }
+
         return root
     }
 
