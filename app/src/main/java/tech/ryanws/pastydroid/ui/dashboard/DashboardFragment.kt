@@ -17,22 +17,43 @@ class DashboardFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
+    private lateinit var viewModel: DashboardViewModel
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val dashboardViewModel =
-            ViewModelProvider(this).get(DashboardViewModel::class.java)
-
+        viewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
         _binding = FragmentDashboardBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        
+        setupViews()
+        observeViewModel()
+        
+        return binding.root
+    }
 
-        val textView: TextView = binding.textDashboard
-        dashboardViewModel.text.observe(viewLifecycleOwner) {
-            textView.text = it
+    private fun setupViews() {
+        binding.buttonFetch.setOnClickListener {
+            val id = binding.inputPasteId.text.toString().toIntOrNull()
+            if (id != null) {
+                viewModel.fetchPaste(id)
+            } else {
+                // Show error
+                binding.inputLayoutPasteId.error = "Please enter a valid number"
+            }
         }
-        return root
+    }
+
+    private fun observeViewModel() {
+        viewModel.paste.observe(viewLifecycleOwner) { paste ->
+            binding.cardPaste.visibility = if (paste != null) View.VISIBLE else View.GONE
+            binding.textPasteContent.text = paste?.content
+        }
+
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            binding.buttonFetch.isEnabled = !isLoading
+        }
     }
 
     override fun onDestroyView() {
